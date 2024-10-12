@@ -2,7 +2,7 @@ use super::utils::*;
 use crate::{
     comp::{
         character_state::OutputEvents, fluid_dynamics::angle_of_attack, inventory::slot::EquipSlot,
-        CharacterState, Ori, StateUpdate, Vel,
+        CharacterState, InputKind, Ori, StateUpdate, Vel,
     },
     event::LocalEvent,
     outcome::Outcome,
@@ -12,8 +12,13 @@ use crate::{
     },
     util::{Dir, Plane, Projection},
 };
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
-use std::{f32::consts::PI, time::Duration};
+use std::{
+    f32::consts::PI,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 use vek::*;
 
 const PITCH_SLOW_TIME: f32 = 0.5;
@@ -83,6 +88,10 @@ impl Data {
             .look_dir()
     }
 }
+
+pub static TOO_FAST: Lazy<Arc<Mutex<bool>>> = Lazy::new(|| Arc::new(Mutex::new(false)));
+pub static BOOST: Lazy<Arc<Mutex<bool>>> = Lazy::new(|| Arc::new(Mutex::new(false)));
+pub static CAP: Lazy<Arc<Mutex<bool>>> = Lazy::new(|| Arc::new(Mutex::new(true)));
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
@@ -216,25 +225,36 @@ impl CharacterBehavior for Data {
                 )
             };
 
-            // If we gained a booster
-            if let Some(booster) = gained_booster {
-                match booster {
-                    Boost::Upward(speed) => {
-                        update.vel.0.z += speed * data.dt.0;
-                    },
-                    Boost::Forward(speed) => {
-                        if data.physics.on_ground.is_some() {
-                            // quality of life hack: help with starting
-                            //
-                            // other velocities are intentionally ignored
-                            update.vel.0.z += 500.0 * data.dt.0;
-                        } else {
-                            update.vel.0.x *= 1.0 + speed * data.dt.0;
-                            update.vel.0.y *= 1.0 + speed * data.dt.0;
-                        }
-                    },
+            //epic boost haxxorz
+            if input_is_pressed(data, InputKind::Roll) {
+                let mut cap = CAP.lock().unwrap();
+                *cap = false;
+            } else {
+                let mut cap = CAP.lock().unwrap();
+                *cap = true;
+            }
+
+            let boost = BOOST.lock().unwrap();
+            if *boost {
+                let too_fast = TOO_FAST.lock().unwrap();
+
+                if !*too_fast {
+                    if data.physics.on_ground.is_some() {
+                        // quality of life hack: help with starting
+                        //
+                        // other velocities are intentionally ignored
+                        update.vel.0.z += 500.0 * data.dt.0;
+                    } else {
+                        update.vel.0.x *= 1.0 + 1.0 * data.dt.0;
+                        update.vel.0.y *= 1.0 + 1.0 * data.dt.0;
+                    }
                 }
-            };
+            }
+
+            // // If we gained a booster
+            // if let Some(booster) = gained_booster {
+            //     match booster {}
+            // };
 
             // Don't override gained booster, if any, otherwise set to None
             let next_booster = if let CharacterState::Glide(Data {
