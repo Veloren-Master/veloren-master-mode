@@ -79,9 +79,8 @@ pub struct Info<'a> {
 
 /// Determines whether to show the healthbar
 pub fn should_show_healthbar(health: &Health) -> bool {
-    // (health.current() - health.maximum()).abs() > Health::HEALTH_EPSILON
-    //     || health.current() < health.base_max()
-    true
+    (health.current() - health.maximum()).abs() > Health::HEALTH_EPSILON
+        || health.current() < health.base_max()
 }
 /// Determines if there is decayed health being applied
 pub fn decayed_health_displayed(health: &Health) -> bool {
@@ -343,151 +342,152 @@ impl<'a> Widget for Overhead<'a> {
                 .set(state.ids.name, ui);
 
             match health {
-                // Some(health)
-                //     if should_show_healthbar(health) || decayed_health_displayed(health) =>
-                // {
-                //     // Show HP Bar
-                //     let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 1.0;
-                // //Animation timer     let crit_hp_color: Color =
-                // Color::Rgba(0.93, 0.59, 0.03, hp_ani);     let decayed_health =
-                // f64::from(1.0 - health.maximum() / health.base_max());     // Background
-                //     Image::new(if self.in_group {self.imgs.health_bar_group_bg} else
-                // {self.imgs.enemy_health_bg})         .w_h(84.0 * BARSIZE, 10.0 *
-                // BARSIZE)         .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
-                //         .color(Some(Color::Rgba(0.1, 0.1, 0.1, 0.8)))
-                //         .parent(id)
-                //         .set(state.ids.health_bar_bg, ui);
+                Some(health)
+                    if should_show_healthbar(health) || decayed_health_displayed(health) =>
+                {
+                    // Show HP Bar
+                    let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 1.0; //Animation timer
+                    let crit_hp_color: Color = Color::Rgba(0.93, 0.59, 0.03, hp_ani);
+                    let decayed_health = f64::from(1.0 - health.maximum() / health.base_max());
+                    // Background
+                    Image::new(if self.in_group {self.imgs.health_bar_group_bg} else {self.imgs.enemy_health_bg})
+                        .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
+                        .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
+                        .color(Some(Color::Rgba(0.1, 0.1, 0.1, 0.8)))
+                        .parent(id)
+                        .set(state.ids.health_bar_bg, ui);
 
-                //     // % HP Filling
-                //     let size_factor = (hp_percentage / 100.0) * BARSIZE;
-                //     let w = if self.in_group {
-                //         82.0 * size_factor
-                //     } else {
-                //         73.0 * size_factor
-                //     };
-                //     let h = 6.0 * BARSIZE;
-                //     let x = if self.in_group {
-                //         (0.0 + (hp_percentage / 100.0 * 41.0 - 41.0)) * BARSIZE
-                //     } else {
-                //         (4.5 + (hp_percentage / 100.0 * 36.45 - 36.45)) * BARSIZE
-                //     };
-                //     Image::new(self.imgs.enemy_bar)
-                //         .w_h(w, h)
-                //         .x_y(x, MANA_BAR_Y + 8.0)
-                //         .color(if self.in_group {
-                //             // Different HP bar colors only for group members
-                //             Some(match hp_percentage {
-                //                 x if (0.0..25.0).contains(&x) => crit_hp_color,
-                //                 x if (25.0..50.0).contains(&x) => LOW_HP_COLOR,
-                //                 _ => HP_COLOR,
-                //             })
-                //         } else {
-                //             Some(ENEMY_HP_COLOR)
-                //         })
-                //         .parent(id)
-                //         .set(state.ids.health_bar, ui);
+                    // % HP Filling
+                    let size_factor = (hp_percentage / 100.0) * BARSIZE;
+                    let w = if self.in_group {
+                        82.0 * size_factor
+                    } else {
+                        73.0 * size_factor
+                    };
+                    let h = 6.0 * BARSIZE;
+                    let x = if self.in_group {
+                        (0.0 + (hp_percentage / 100.0 * 41.0 - 41.0)) * BARSIZE
+                    } else {
+                        (4.5 + (hp_percentage / 100.0 * 36.45 - 36.45)) * BARSIZE
+                    };
+                    Image::new(self.imgs.enemy_bar)
+                        .w_h(w, h)
+                        .x_y(x, MANA_BAR_Y + 8.0)
+                        .color(if self.in_group {
+                            // Different HP bar colors only for group members
+                            Some(match hp_percentage {
+                                x if (0.0..25.0).contains(&x) => crit_hp_color,
+                                x if (25.0..50.0).contains(&x) => LOW_HP_COLOR,
+                                _ => HP_COLOR,
+                            })
+                        } else {
+                            Some(ENEMY_HP_COLOR)
+                        })
+                        .parent(id)
+                        .set(state.ids.health_bar, ui);
 
-                //     if decayed_health > 0.0 {
-                //         let x_decayed = if self.in_group {
-                //             (0.0 - (decayed_health * 41.0 - 41.0)) * BARSIZE
-                //         } else {
-                //             (4.5 - (decayed_health * 36.45 - 36.45)) * BARSIZE
-                //         };
+                    if decayed_health > 0.0 {
+                        let x_decayed = if self.in_group {
+                            (0.0 - (decayed_health * 41.0 - 41.0)) * BARSIZE
+                        } else {
+                            (4.5 - (decayed_health * 36.45 - 36.45)) * BARSIZE
+                        };
 
-                //         let decay_bar_len = decayed_health
-                //             * if self.in_group { 82.0 * BARSIZE
-                //             } else {
-                //                 73.0 * BARSIZE
-                //             };
-                //         Image::new(self.imgs.enemy_bar)
-                //             .w_h(decay_bar_len, h)
-                //             .x_y(x_decayed, MANA_BAR_Y + 8.0)
-                //             .color(Some(QUALITY_EPIC))
-                //             .parent(id)
-                //             .set(state.ids.decay_bar, ui);
-                //     }
-                //     let mut txt = format!("{}/{}", health_cur_txt, health_max_txt);
-                //     if health.is_dead {
-                //         txt = self.i18n.get_msg("hud-group-dead").to_string()
-                //     };
-                //     Text::new(&txt)
-                //         .mid_top_with_margin_on(state.ids.health_bar_bg, 2.0)
-                //         .font_size(10)
-                //         .font_id(self.fonts.cyri.conrod_id)
-                //         .color(TEXT_COLOR)
-                //         .parent(id)
-                //         .set(state.ids.health_txt, ui);
+                        let decay_bar_len = decayed_health
+                            * if self.in_group {
+                                82.0 * BARSIZE
+                            } else {
+                                73.0 * BARSIZE
+                            };
+                        Image::new(self.imgs.enemy_bar)
+                            .w_h(decay_bar_len, h)
+                            .x_y(x_decayed, MANA_BAR_Y + 8.0)
+                            .color(Some(QUALITY_EPIC))
+                            .parent(id)
+                            .set(state.ids.decay_bar, ui);
+                    }
+                    let mut txt = format!("{}/{}", health_cur_txt, health_max_txt);
+                    if health.is_dead {
+                        txt = self.i18n.get_msg("hud-group-dead").to_string()
+                    };
+                    Text::new(&txt)
+                        .mid_top_with_margin_on(state.ids.health_bar_bg, 2.0)
+                        .font_size(10)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(TEXT_COLOR)
+                        .parent(id)
+                        .set(state.ids.health_txt, ui);
 
-                //     // % Mana Filling
-                //     if let Some(energy) = energy {
-                //         let energy_factor = f64::from(energy.current() / energy.maximum());
-                //         let size_factor = energy_factor * BARSIZE;
-                //         let w = if self.in_group {
-                //             80.0 * size_factor
-                //         } else {
-                //             72.0 * size_factor
-                //         };
-                //         let x = if self.in_group {
-                //             ((0.0 + (energy_factor * 40.0)) - 40.0) * BARSIZE
-                //         } else {
-                //             ((3.5 + (energy_factor * 36.5)) - 36.45) * BARSIZE
-                //         };
-                //         Rectangle::fill_with([w, MANA_BAR_HEIGHT], STAMINA_COLOR)
-                //             .x_y(
-                //                 x, MANA_BAR_Y, //-32.0,
-                //             )
-                //             .parent(id)
-                //             .set(state.ids.mana_bar, ui);
-                //     }
+                    // % Mana Filling
+                    if let Some(energy) = energy {
+                        let energy_factor = f64::from(energy.current() / energy.maximum());
+                        let size_factor = energy_factor * BARSIZE;
+                        let w = if self.in_group {
+                            80.0 * size_factor
+                        } else {
+                            72.0 * size_factor
+                        };
+                        let x = if self.in_group {
+                            ((0.0 + (energy_factor * 40.0)) - 40.0) * BARSIZE
+                        } else {
+                            ((3.5 + (energy_factor * 36.5)) - 36.45) * BARSIZE
+                        };
+                        Rectangle::fill_with([w, MANA_BAR_HEIGHT], STAMINA_COLOR)
+                            .x_y(
+                                x, MANA_BAR_Y, //-32.0,
+                            )
+                            .parent(id)
+                            .set(state.ids.mana_bar, ui);
+                    }
 
-                //     // Foreground
-                //     Image::new(if self.in_group {self.imgs.health_bar_group} else
-                // {self.imgs.enemy_health}) .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
-                // .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
-                // .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.99)))
-                // .parent(id)
-                // .set(state.ids.health_bar_fg, ui);
+                    // Foreground
+                    Image::new(if self.in_group {self.imgs.health_bar_group} else {self.imgs.enemy_health})
+                .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
+                .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.99)))
+                .parent(id)
+                .set(state.ids.health_bar_fg, ui);
 
-                //     if let Some(combat_rating) = combat_rating {
-                //         let indicator_col = cr_color(combat_rating);
-                //         let artifact_diffculty = 122.0;
+                    if let Some(combat_rating) = combat_rating {
+                        let indicator_col = cr_color(combat_rating);
+                        let artifact_diffculty = 122.0;
 
-                //         if combat_rating > artifact_diffculty && !self.in_group {
-                //             let skull_ani =
-                //                 ((self.pulse * 0.7/* speed factor */).cos() * 0.5 + 0.5) * 10.0;
-                // //Animation timer             Image::new(if skull_ani as i32 == 1
-                // && rand::random::<f32>() < 0.9 {
-                // self.imgs.skull_2             } else {
-                //                 self.imgs.skull
-                //             })
-                //             .w_h(18.0 * BARSIZE, 18.0 * BARSIZE)
-                //             .x_y(-39.0 * BARSIZE, MANA_BAR_Y + 7.0)
-                //             .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-                //             .parent(id)
-                //             .set(state.ids.level_skull, ui);
-                //         } else {
-                //             Image::new(if self.in_group {
-                //                 self.imgs.nothing
-                //             } else {
-                //                 self.imgs.combat_rating_ico
-                //             })
-                //             .w_h(7.0 * BARSIZE, 7.0 * BARSIZE)
-                //             .x_y(-37.0 * BARSIZE, MANA_BAR_Y + 6.0)
-                //             .color(Some(indicator_col))
-                //             .parent(id)
-                //             .set(state.ids.level, ui);
-                //         }
-                //     }
+                        if combat_rating > artifact_diffculty && !self.in_group {
+                            let skull_ani =
+                                ((self.pulse * 0.7/* speed factor */).cos() * 0.5 + 0.5) * 10.0; //Animation timer
+                            Image::new(if skull_ani as i32 == 1 && rand::random::<f32>() < 0.9 {
+                                self.imgs.skull_2
+                            } else {
+                                self.imgs.skull
+                            })
+                            .w_h(18.0 * BARSIZE, 18.0 * BARSIZE)
+                            .x_y(-39.0 * BARSIZE, MANA_BAR_Y + 7.0)
+                            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+                            .parent(id)
+                            .set(state.ids.level_skull, ui);
+                        } else {
+                            Image::new(if self.in_group {
+                                self.imgs.nothing
+                            } else {
+                                self.imgs.combat_rating_ico
+                            })
+                            .w_h(7.0 * BARSIZE, 7.0 * BARSIZE)
+                            .x_y(-37.0 * BARSIZE, MANA_BAR_Y + 6.0)
+                            .color(Some(indicator_col))
+                            .parent(id)
+                            .set(state.ids.level, ui);
+                        }
+                    }
 
-                //     if hardcore {
-                //         Image::new(self.imgs.hardcore)
-                //             .w_h(18.0 * BARSIZE, 18.0 * BARSIZE)
-                //             .x_y(39.0 * BARSIZE, MANA_BAR_Y + 13.0)
-                //             .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-                //             .parent(id)
-                //             .set(state.ids.hardcore, ui);
-                //     }
-                // },
+                    if hardcore {
+                        Image::new(self.imgs.hardcore)
+                            .w_h(18.0 * BARSIZE, 18.0 * BARSIZE)
+                            .x_y(39.0 * BARSIZE, MANA_BAR_Y + 13.0)
+                            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+                            .parent(id)
+                            .set(state.ids.hardcore, ui);
+                    }
+                },
                 _ => {},
             }
 
