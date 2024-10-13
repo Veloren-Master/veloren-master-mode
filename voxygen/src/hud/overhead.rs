@@ -79,8 +79,9 @@ pub struct Info<'a> {
 
 /// Determines whether to show the healthbar
 pub fn should_show_healthbar(health: &Health) -> bool {
-    (health.current() - health.maximum()).abs() > Health::HEALTH_EPSILON
-        || health.current() < health.base_max()
+    // (health.current() - health.maximum()).abs() > Health::HEALTH_EPSILON
+    //     || health.current() < health.base_max()
+    true
 }
 /// Determines if there is decayed health being applied
 pub fn decayed_health_displayed(health: &Health) -> bool {
@@ -226,7 +227,7 @@ impl<'a> Widget for Overhead<'a> {
             let health_current = health.map_or(1.0, |h| f64::from(h.current()));
             let health_max = health.map_or(1.0, |h| f64::from(h.maximum()));
             let name_y = if (health_current - health_max).abs() < 1e-6 {
-                MANA_BAR_Y + 20.0
+                MANA_BAR_Y + 32.0
             } else {
                 MANA_BAR_Y + 32.0
             };
