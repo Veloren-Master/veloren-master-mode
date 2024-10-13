@@ -797,15 +797,7 @@ impl<'a> Widget for MiniMap<'a> {
             // Group member indicators
             let client_state = self.client.state();
             let member_pos = client_state.ecs().read_storage::<comp::Pos>();
-            let group_members = self
-                .client
-                .group_members()
-                .iter()
-                .filter_map(|(u, r)| match r {
-                    Role::Member => Some(u),
-                    Role::Pet => None,
-                })
-                .collect::<Vec<_>>();
+            let group_members = self.client.player_list().iter().collect::<Vec<_>>();
             let group_size = group_members.len();
             //let in_group = !group_members.is_empty();
             let id_maps = client_state
@@ -818,7 +810,7 @@ impl<'a> Widget for MiniMap<'a> {
                         .resize(group_size, &mut ui.widget_id_generator())
                 })
             };
-            for (i, &uid) in group_members.iter().copied().enumerate() {
+            for (i, (&uid, _)) in group_members.iter().copied().enumerate() {
                 let entity = id_maps.uid_entity(uid);
                 let member_pos = entity.and_then(|entity| member_pos.get(entity));
 
