@@ -49,7 +49,7 @@ impl Default for Data {
         Data {
             static_data: StaticData {
                 energy_cost: 15.0,
-                movement_speed: 5.0,
+                movement_speed: 7.5,
             },
         }
     }
