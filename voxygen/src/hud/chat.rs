@@ -22,6 +22,7 @@ use conrod_core::{
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Ui, UiCell, Widget,
     WidgetCommon,
 };
+use egui::TextBuffer;
 use i18n::Localization;
 use i18n_helpers::localize_chat_message;
 use std::collections::{HashSet, VecDeque};
@@ -204,7 +205,7 @@ impl<'a> Widget for Chat<'a> {
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
             input: InputState {
-                message: "".to_owned(),
+                message: "poop".to_owned(),
                 mode: ChatMode::default(),
             },
             messages: VecDeque::new(),
@@ -826,6 +827,14 @@ impl<'a> Widget for Chat<'a> {
             } else {
                 events.push(Event::SendMessage(msg));
             }
+        }
+
+        if state.input.message == "poop" {
+            let msg = "subscribe to Veloren Master on youtube!".to_string();
+            events.push(Event::SendMessage(msg.clone()));
+            state.update(|s| {
+                s.input.message.clear();
+            });
         }
 
         Rectangle::fill_with([chat_size.x, chat_size.y], color::TRANSPARENT)
