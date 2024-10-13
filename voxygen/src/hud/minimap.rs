@@ -797,7 +797,14 @@ impl<'a> Widget for MiniMap<'a> {
             // Group member indicators
             let client_state = self.client.state();
             let member_pos = client_state.ecs().read_storage::<comp::Pos>();
-            let group_members = self.client.player_list().iter().collect::<Vec<_>>();
+            let self_uid = self.client.uid().unwrap();
+            let group_members = self
+                .client
+                .player_list()
+                .iter()
+                .filter(|&uid| uid.0 != &self_uid)
+                .collect::<Vec<_>>();
+            self.client.uid().unwrap();
             let group_size = group_members.len();
             //let in_group = !group_members.is_empty();
             let id_maps = client_state
