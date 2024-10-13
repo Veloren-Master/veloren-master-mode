@@ -216,15 +216,15 @@ const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);
 const MENU_BG: Color = Color::Rgba(0.1, 0.12, 0.12, 1.0);
 //const UI_DARK_0: Color = Color::Rgba(0.25, 0.37, 0.37, 1.0);
 
-/// Distance at which nametags are visible for group members
-const NAMETAG_GROUP_RANGE: f32 = 1000.0;
+/// Distance at which nametags are visible for group memberss
+const NAMETAG_GROUP_RANGE: f32 = 2000.0;
 /// Distance at which nametags are visible
-const NAMETAG_RANGE: f32 = 40.0;
+const NAMETAG_RANGE: f32 = 100.0;
 /// Time nametags stay visible after doing damage even if they are out of range
 /// in seconds
 const NAMETAG_DMG_TIME: f32 = 60.0;
 /// Range damaged triggered nametags can be seen
-const NAMETAG_DMG_RANGE: f32 = 120.0;
+const NAMETAG_DMG_RANGE: f32 = 200.0;
 /// Range to display speech-bubbles at
 const SPEECH_BUBBLE_RANGE: f32 = NAMETAG_RANGE;
 const EXP_FLOATER_LIFETIME: f32 = 2.0;
