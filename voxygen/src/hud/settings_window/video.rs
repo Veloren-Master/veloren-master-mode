@@ -772,8 +772,8 @@ impl<'a> Widget for Video<'a> {
 
         if let Some(new_val) = ImageSlider::discrete(
             (self.global_state.settings.graphics.gamma.log2() * 8.0).round() as i32,
-            8,
-            -8,
+            32,
+            -32,
             self.imgs.slider_indicator,
             self.imgs.slider,
         )
