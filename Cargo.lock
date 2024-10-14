@@ -7237,6 +7237,7 @@ dependencies = [
  "hickory-resolver",
  "image",
  "num 0.4.3",
+ "once_cell",
  "quinn",
  "rayon",
  "ron",

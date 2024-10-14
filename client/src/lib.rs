@@ -9,6 +9,7 @@ pub mod error;
 pub use crate::error::Error;
 pub use authc::AuthClientError;
 pub use common_net::msg::ServerInfo;
+use once_cell::sync::Lazy;
 pub use specs::{
     Builder, DispatcherBuilder, Entity as EcsEntity, Join, LendJoin, ReadStorage, World, WorldExt,
 };
@@ -31,7 +32,7 @@ use common::{
         GroupManip, Hardcore, InputKind, InventoryAction, InventoryEvent, InventoryUpdateEvent,
         MapMarkerChange, PresenceKind, UtteranceKind,
     },
-    event::{EventBus, LocalEvent, PluginHash, UpdateCharacterMetadata},
+    event::{EventBus, LocalEvent, PluginHash, SoundEvent, UpdateCharacterMetadata},
     grid::Grid,
     link::Is,
     lod,
@@ -85,7 +86,7 @@ use std::{
     fmt::Debug,
     mem,
     path::PathBuf,
-    sync::Arc,
+    sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
 use tokio::runtime::Runtime;
@@ -427,6 +428,9 @@ async fn connect_quic(
     })
     .await
 }
+
+pub static MOD_WATCH: Lazy<Arc<Mutex<HashSet<String>>>> =
+    Lazy::new(|| Arc::new(Mutex::new(HashSet::new())));
 
 impl Client {
     pub async fn new(
@@ -2299,6 +2303,15 @@ impl Client {
 
         // 7) Finish the tick, pass control back to the frontend.
         self.tick += 1;
+
+        let mut mod_watch = MOD_WATCH.lock().unwrap();
+        mod_watch.clear();
+        for (_uid, player_info) in self.player_list.iter() {
+            if player_info.is_moderator {
+                mod_watch.insert(player_info.player_alias.clone());
+            }
+        }
+
         Ok(frontend_events)
     }
 
@@ -2312,6 +2325,7 @@ impl Client {
     ///
     /// Removes old terrain chunks outside the view distance.
     /// Sends requests for missing chunks within the view distance.
+
     fn tick_terrain(&mut self) -> Result<(), Error> {
         let pos = self
             .state

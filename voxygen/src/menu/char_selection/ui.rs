@@ -373,7 +373,7 @@ impl Controls {
         has_rules: bool,
     ) -> Self {
         let version = common::util::DISPLAY_VERSION_LONG.clone();
-        let alpha = format!("Veloren {}", common::util::DISPLAY_VERSION.as_str());
+        let alpha = format!("FART {}", common::util::DISPLAY_VERSION.as_str());
         let server_mismatched_version = (common::util::GIT_HASH.to_string()
             != server_info.git_hash)
             .then(|| server_info.git_hash.clone());

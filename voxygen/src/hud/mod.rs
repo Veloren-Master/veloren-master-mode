@@ -84,7 +84,7 @@ use crate::{
     window::Event as WinEvent,
     GlobalState,
 };
-use client::Client;
+use client::{Client, MOD_WATCH};
 use common::{
     combat,
     comp::{
@@ -1573,12 +1573,34 @@ impl Hud {
                         .set(self.ids.hurt_bg, ui_widgets);
                 }
                 // Alpha Disclaimer
-                Text::new(&format!("Veloren {}", &version))
+                // Text::new(&format!("Veloren {}", &version))
+                //     .font_id(self.fonts.cyri.conrod_id)
+                //     .font_size(self.fonts.cyri.scale(10))
+                //     .color(TEXT_COLOR)
+                //     .mid_top_with_margin_on(ui_widgets.window, 2.0)
+                //     .set(self.ids.alpha_text, ui_widgets);
+
+                let mod_watch = MOD_WATCH.lock().unwrap();
+                let mod_list: Vec<&str> = mod_watch.iter().map(|s| s.as_str()).collect();
+
+                if mod_watch.is_empty() {
+                    Text::new(&format!("Veloren Master Mode Initiated... 8)"))
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(16))
+                        .color(Color::Rgba(0.0, 1.0, 0.0, 1.0))
+                        .mid_top_with_margin_on(ui_widgets.window, 3.0)
+                        .set(self.ids.alpha_text, ui_widgets);
+                } else {
+                    Text::new(&format!(
+                        "THERE ARE MODS ON, THEY ARE: {}",
+                        mod_list.join(", ")
+                    ))
                     .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(self.fonts.cyri.scale(10))
-                    .color(TEXT_COLOR)
-                    .mid_top_with_margin_on(ui_widgets.window, 2.0)
+                    .font_size(self.fonts.cyri.scale(40))
+                    .color(Color::Rgba(1.0, 0.0, 0.0, 1.0))
+                    .mid_top_with_margin_on(ui_widgets.window, 3.0)
                     .set(self.ids.alpha_text, ui_widgets);
+                }
 
                 // Death Frame
                 if health.is_dead {

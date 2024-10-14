@@ -804,8 +804,8 @@ impl<'a> Widget for MiniMap<'a> {
                 .iter()
                 .filter(|&uid| uid.0 != &self_uid)
                 .collect::<Vec<_>>();
-            self.client.uid().unwrap();
             let group_size = group_members.len();
+
             //let in_group = !group_members.is_empty();
             let id_maps = client_state
                 .ecs()
