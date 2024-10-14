@@ -736,7 +736,7 @@ impl Camera {
             self.set_mode(match self.mode {
                 CameraMode::ThirdPerson => CameraMode::FirstPerson,
                 CameraMode::FirstPerson => {
-                    if is_admin {
+                    if !is_admin {
                         CameraMode::Freefly
                     } else {
                         CameraMode::ThirdPerson
