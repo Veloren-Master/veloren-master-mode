@@ -2673,11 +2673,9 @@ impl Hud {
         }
 
         if debug_info.is_some() {
-            let mut boost = BOOST.lock().unwrap();
-            *boost = true;
+            BOOST.store(true, std::sync::atomic::Ordering::Relaxed);
         } else {
-            let mut boost = BOOST.lock().unwrap();
-            *boost = false;
+            BOOST.store(false, std::sync::atomic::Ordering::Relaxed);
         }
 
         // Display debug window.
@@ -2740,23 +2738,17 @@ impl Hud {
                         velocity.magnitude()
                     );
 
-                    let cap = CAP.lock().unwrap();
-
-                    if !*cap {
+                    if !CAP.load(std::sync::atomic::Ordering::Relaxed) {
                         if velocity.magnitude() > 20.0 {
-                            let mut too_fast = TOO_FAST.lock().unwrap();
-                            *too_fast = true;
+                            TOO_FAST.store(true, std::sync::atomic::Ordering::Relaxed);
                         } else {
-                            let mut too_fast = TOO_FAST.lock().unwrap();
-                            *too_fast = false;
+                            TOO_FAST.store(false, std::sync::atomic::Ordering::Relaxed);
                         }
                     } else {
                         if velocity.magnitude() > 64.5 {
-                            let mut too_fast = TOO_FAST.lock().unwrap();
-                            *too_fast = true;
+                            TOO_FAST.store(true, std::sync::atomic::Ordering::Relaxed);
                         } else {
-                            let mut too_fast = TOO_FAST.lock().unwrap();
-                            *too_fast = false;
+                            TOO_FAST.store(false, std::sync::atomic::Ordering::Relaxed);
                         }
                     }
 

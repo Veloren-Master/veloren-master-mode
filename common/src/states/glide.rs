@@ -16,7 +16,7 @@ use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::{
     f32::consts::PI,
-    sync::{Arc, Mutex},
+    sync::{atomic::AtomicBool, Arc, Mutex},
     time::Duration,
 };
 use vek::*;
@@ -89,9 +89,11 @@ impl Data {
     }
 }
 
-pub static TOO_FAST: Lazy<Arc<Mutex<bool>>> = Lazy::new(|| Arc::new(Mutex::new(false)));
-pub static BOOST: Lazy<Arc<Mutex<bool>>> = Lazy::new(|| Arc::new(Mutex::new(false)));
-pub static CAP: Lazy<Arc<Mutex<bool>>> = Lazy::new(|| Arc::new(Mutex::new(true)));
+// pub static TOO_FAST: Lazy<Arc<Mutex<bool>>> = Lazy::new(||
+// Arc::new(Mutex::new(false)));
+pub static TOO_FAST: AtomicBool = AtomicBool::new(false);
+pub static BOOST: AtomicBool = AtomicBool::new(false);
+pub static CAP: AtomicBool = AtomicBool::new(true);
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
@@ -227,18 +229,13 @@ impl CharacterBehavior for Data {
 
             //epic boost haxxorz
             if input_is_pressed(data, InputKind::Roll) {
-                let mut cap = CAP.lock().unwrap();
-                *cap = false;
+                CAP.store(false, std::sync::atomic::Ordering::Relaxed);
             } else {
-                let mut cap = CAP.lock().unwrap();
-                *cap = true;
+                CAP.store(true, std::sync::atomic::Ordering::Relaxed);
             }
 
-            let boost = BOOST.lock().unwrap();
-            if *boost {
-                let too_fast = TOO_FAST.lock().unwrap();
-
-                if !*too_fast {
+            if BOOST.load(std::sync::atomic::Ordering::Relaxed) {
+                if !TOO_FAST.load(std::sync::atomic::Ordering::Relaxed) {
                     if data.physics.on_ground.is_some() {
                         // quality of life hack: help with starting
                         //
