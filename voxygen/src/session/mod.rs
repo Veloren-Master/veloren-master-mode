@@ -2,7 +2,10 @@ pub mod interactable;
 pub mod settings_change;
 mod target;
 
-use std::{cell::RefCell, collections::HashSet, rc::Rc, result::Result, time::Duration};
+use std::{
+    cell::RefCell, collections::HashSet, rc::Rc, result::Result, sync::atomic::AtomicBool,
+    time::Duration,
+};
 
 #[cfg(not(target_os = "macos"))]
 use mumble_link::SharedLink;
@@ -1303,6 +1306,14 @@ impl PlayState for SessionState {
                                     .gameplay
                                     .walking_speed_behavior
                                     .update(state, &mut self.walking_speed, |_| {});
+                            },
+                            GameInput::Noclip => {
+                                self.client.borrow_mut().handle_input(
+                                    InputKind::Noclip,
+                                    state,
+                                    None,
+                                    self.target_entity,
+                                );
                             },
                             _ => {},
                         }
