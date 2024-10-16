@@ -201,7 +201,6 @@ impl ControlSettings {
             GameInput::MuteSfx => None,
             GameInput::MuteAmbience => None,
             GameInput::ToggleWalk => Some(KeyMouse::Key(VirtualKeyCode::I)),
-            GameInput::Noclip => Some(KeyMouse::Key(VirtualKeyCode::LAlt)),
         }
     }
 }

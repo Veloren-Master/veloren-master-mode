@@ -32,7 +32,7 @@ use common::{
         GroupManip, Hardcore, InputKind, InventoryAction, InventoryEvent, InventoryUpdateEvent,
         MapMarkerChange, PresenceKind, UtteranceKind,
     },
-    event::{EventBus, LocalEvent, PluginHash, UpdateCharacterMetadata},
+    event::{EventBus, LocalEvent, PluginHash, SoundEvent, UpdateCharacterMetadata},
     grid::Grid,
     link::Is,
     lod,
@@ -86,7 +86,7 @@ use std::{
     fmt::Debug,
     mem,
     path::PathBuf,
-    sync::{atomic::AtomicBool, Arc, Mutex},
+    sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
 use tokio::runtime::Runtime;

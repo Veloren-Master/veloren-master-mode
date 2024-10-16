@@ -74,4 +74,3 @@ gameinput-mutemusic = Mute music volume
 gameinput-mutesfx = Mute SFX volume
 gameinput-muteambience = Mute ambience volume
 gameinput-togglewalk = Toggle Walking
-gameinput-noclip = Noclip

@@ -172,8 +172,6 @@ pub enum GameInput {
     MuteAmbience,
     #[strum(serialize = "gameinput-togglewalk")]
     ToggleWalk,
-    #[strum(serialize = "gameinput-noclip")]
-    Noclip,
 }
 
 impl GameInput {

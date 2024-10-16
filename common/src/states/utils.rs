@@ -417,19 +417,6 @@ pub fn handle_skating(data: &JoinData, update: &mut StateUpdate) {
 
 /// Handles updating `Components` to move player based on state of `JoinData`
 pub fn handle_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) {
-    if input_is_pressed(data, InputKind::Noclip) {
-        // dbg!(update.pos.0);
-        // dbg!(update.character_activity.look_dir.unwrap());
-        if input_is_pressed(data, InputKind::Primary) {
-            update.pos.0.x += update.character_activity.look_dir.unwrap().x * data.dt.0 * 7.5;
-            update.pos.0.y += update.character_activity.look_dir.unwrap().y * data.dt.0 * 7.5;
-            update.pos.0.z += update.character_activity.look_dir.unwrap().z * data.dt.0 * 7.5;
-        } else {
-            update.pos.0.x += update.character_activity.look_dir.unwrap().x * data.dt.0 * 75.0;
-            update.pos.0.y += update.character_activity.look_dir.unwrap().y * data.dt.0 * 75.0;
-            update.pos.0.z += update.character_activity.look_dir.unwrap().z * data.dt.0 * 75.0;
-        }
-    }
     if data.volume_mount_data.is_some() {
         return;
     }
@@ -961,20 +948,6 @@ pub fn attempt_sneak(data: &JoinData<'_>, update: &mut StateUpdate) {
 
 /// Checks that player can `Climb` and updates `CharacterState` if so
 pub fn handle_climb(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
-    if input_is_pressed(data, InputKind::Noclip) {
-        // dbg!(update.pos.0);
-        // dbg!(update.character_activity.look_dir.unwrap());
-        if input_is_pressed(data, InputKind::Primary) {
-            update.pos.0.x += update.character_activity.look_dir.unwrap().x * data.dt.0 * 7.5;
-            update.pos.0.y += update.character_activity.look_dir.unwrap().y * data.dt.0 * 7.5;
-            update.pos.0.z += update.character_activity.look_dir.unwrap().z * data.dt.0 * 7.5;
-        } else {
-            update.pos.0.x += update.character_activity.look_dir.unwrap().x * data.dt.0 * 75.0;
-            update.pos.0.y += update.character_activity.look_dir.unwrap().y * data.dt.0 * 75.0;
-            update.pos.0.z += update.character_activity.look_dir.unwrap().z * data.dt.0 * 75.0;
-        }
-    }
-
     if data.inputs.climb.is_some()
         && data.physics.on_wall.is_some()
         && data.physics.on_ground.is_none()
@@ -1429,7 +1402,7 @@ pub fn handle_input(
         InputKind::Jump => {
             handle_jump(data, output_events, update, 1.0);
         },
-        InputKind::Fly | InputKind::Noclip => {},
+        InputKind::Fly => {},
     }
 }
 

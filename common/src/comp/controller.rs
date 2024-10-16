@@ -216,7 +216,6 @@ pub enum InputKind {
     Roll = 4,
     Jump = 5,
     Fly = 6,
-    Noclip = 7,
 }
 
 impl InputKind {
@@ -237,7 +236,7 @@ impl From<InputKind> for Option<ability::AbilityInput> {
             InputKind::Secondary => Some(AbilityInput::Secondary),
             InputKind::Roll => Some(AbilityInput::Movement),
             InputKind::Ability(index) => Some(AbilityInput::Auxiliary(index)),
-            InputKind::Jump | InputKind::Fly | InputKind::Noclip => None,
+            InputKind::Jump | InputKind::Fly => None,
         }
     }
 }
