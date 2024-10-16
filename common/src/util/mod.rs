@@ -18,9 +18,9 @@ lazy_static::lazy_static! {
         std::env::var("VELOREN_GIT_VERSION").unwrap_or_else(|_| GIT_VERSION_BUILD.to_string());
     pub static ref GIT_TAG: String =
         std::env::var("VELOREN_GIT_TAG").unwrap_or_else(|_| GIT_TAG_BUILD.to_string());
-    pub static ref GIT_HASH: &'static str = "d3c7671b";
+    pub static ref GIT_HASH: &'static str = "640337a8";
     static ref GIT_DATETIME: &'static str = GIT_VERSION.split('/').nth(1).expect("failed to retrieve git_datetime!");
-    pub static ref GIT_DATE: String = GIT_DATETIME.split('-').take(3).collect::<Vec<&str>>().join("-");
+    pub static ref GIT_DATE: String = "2024-10-15".to_string();
     pub static ref GIT_TIME: &'static str = GIT_DATETIME.split('-').nth(3).expect("failed to retrieve git_time!");
     pub static ref GIT_DATE_TIMESTAMP: i64 =
         NaiveDateTime::parse_from_str(*GIT_DATETIME, "%Y-%m-%d-%H:%M")
