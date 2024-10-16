@@ -421,13 +421,13 @@ pub fn handle_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f3
         // dbg!(update.pos.0);
         // dbg!(update.character_activity.look_dir.unwrap());
         if input_is_pressed(data, InputKind::Primary) {
-            update.pos.0.x += data.controller.inputs.look_dir.x * data.dt.0 * 7.5;
-            update.pos.0.y += data.controller.inputs.look_dir.y * data.dt.0 * 7.5;
-            update.pos.0.z += data.controller.inputs.look_dir.z * data.dt.0 * 7.5;
+            update.pos.0.x += update.character_activity.look_dir.unwrap().x * data.dt.0 * 7.5;
+            update.pos.0.y += update.character_activity.look_dir.unwrap().y * data.dt.0 * 7.5;
+            update.pos.0.z += update.character_activity.look_dir.unwrap().z * data.dt.0 * 7.5;
         } else {
-            update.pos.0.x += data.controller.inputs.look_dir.x * data.dt.0 * 75.0;
-            update.pos.0.y += data.controller.inputs.look_dir.y * data.dt.0 * 75.0;
-            update.pos.0.z += data.controller.inputs.look_dir.z * data.dt.0 * 75.0;
+            update.pos.0.x += update.character_activity.look_dir.unwrap().x * data.dt.0 * 75.0;
+            update.pos.0.y += update.character_activity.look_dir.unwrap().y * data.dt.0 * 75.0;
+            update.pos.0.z += update.character_activity.look_dir.unwrap().z * data.dt.0 * 75.0;
         }
     }
     if data.volume_mount_data.is_some() {
@@ -965,13 +965,13 @@ pub fn handle_climb(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
         // dbg!(update.pos.0);
         // dbg!(update.character_activity.look_dir.unwrap());
         if input_is_pressed(data, InputKind::Primary) {
-            update.pos.0.x += data.controller.inputs.look_dir.x * data.dt.0 * 7.5;
-            update.pos.0.y += data.controller.inputs.look_dir.y * data.dt.0 * 7.5;
-            update.pos.0.z += data.controller.inputs.look_dir.z * data.dt.0 * 7.5;
+            update.pos.0.x += update.character_activity.look_dir.unwrap().x * data.dt.0 * 7.5;
+            update.pos.0.y += update.character_activity.look_dir.unwrap().y * data.dt.0 * 7.5;
+            update.pos.0.z += update.character_activity.look_dir.unwrap().z * data.dt.0 * 7.5;
         } else {
-            update.pos.0.x += data.controller.inputs.look_dir.x * data.dt.0 * 75.0;
-            update.pos.0.y += data.controller.inputs.look_dir.y * data.dt.0 * 75.0;
-            update.pos.0.z += data.controller.inputs.look_dir.z * data.dt.0 * 75.0;
+            update.pos.0.x += update.character_activity.look_dir.unwrap().x * data.dt.0 * 75.0;
+            update.pos.0.y += update.character_activity.look_dir.unwrap().y * data.dt.0 * 75.0;
+            update.pos.0.z += update.character_activity.look_dir.unwrap().z * data.dt.0 * 75.0;
         }
     }
 
