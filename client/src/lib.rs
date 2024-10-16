@@ -28,9 +28,9 @@ use common::{
         invite::{InviteKind, InviteResponse},
         skills::Skill,
         slot::{EquipSlot, InvSlotId, Slot},
-        CharacterState, ChatMode, ControlAction, ControlEvent, Controller, ControllerInputs,
-        GroupManip, Hardcore, InputKind, InventoryAction, InventoryEvent, InventoryUpdateEvent,
-        MapMarkerChange, PresenceKind, UtteranceKind,
+        AdminRole, CharacterState, ChatMode, ControlAction, ControlEvent, Controller,
+        ControllerInputs, GroupManip, Hardcore, InputKind, InventoryAction, InventoryEvent,
+        InventoryUpdateEvent, MapMarkerChange, PresenceKind, UtteranceKind,
     },
     event::{EventBus, LocalEvent, PluginHash, SoundEvent, UpdateCharacterMetadata},
     grid::Grid,
@@ -56,15 +56,16 @@ use common::{
 use common_base::{prof_span, span};
 use common_net::{
     msg::{
-        self,
         server::ServerDescription,
         world_msg::{EconomyInfo, PoiInfo, SiteId, SiteInfo},
-        ChatTypeContext, ClientGeneral, ClientMsg, ClientRegister, ClientType, DisconnectReason,
-        InviteAnswer, Notification, PingMsg, PlayerInfo, PlayerListUpdate, RegisterError,
-        ServerGeneral, ServerInit, ServerRegisterAnswer,
+        ChatTypeContext, ClientGeneral, ClientMsg, ClientRegister, DisconnectReason, InviteAnswer,
+        Notification, PingMsg, PlayerInfo, PlayerListUpdate, RegisterError, ServerGeneral,
+        ServerInit, ServerRegisterAnswer,
     },
     sync::WorldSyncExt,
 };
+
+pub use common_net::msg::ClientType;
 #[cfg(feature = "plugins")]
 use common_state::plugin::PluginMgr;
 use common_state::State;
@@ -265,6 +266,7 @@ impl Default for WeatherLerp {
 }
 
 pub struct Client {
+    client_type: ClientType,
     registered: bool,
     presence: Option<PresenceKind>,
     runtime: Arc<Runtime>,
@@ -288,6 +290,7 @@ pub struct Client {
     lod_pos_fallback: Option<Vec2<f32>>,
     force_update_counter: u64,
 
+    role: Option<AdminRole>,
     max_group_size: u32,
     // Client has received an invite (inviter uid, time out instant)
     invite: Option<(Uid, Instant, Duration, InviteKind)>,
@@ -445,6 +448,7 @@ impl Client {
         init_stage_update: &(dyn Fn(ClientInitStage) + Send + Sync),
         add_foreign_systems: impl Fn(&mut DispatcherBuilder) + Send + 'static,
         #[cfg_attr(not(feature = "plugins"), allow(unused_variables))] config_dir: PathBuf,
+        client_type: ClientType,
     ) -> Result<Self, Error> {
         let _ = rustls::crypto::ring::default_provider().install_default(); // needs to be initialized before usage
         let network = Network::new(Pid::new(), &runtime);
@@ -588,7 +592,7 @@ impl Client {
         let terrain_stream = participant.opened().await?;
 
         init_stage_update(ClientInitStage::WatingForServerVersion);
-        register_stream.send(ClientType::Game)?;
+        register_stream.send(client_type)?;
         let server_info: ServerInfo = register_stream.recv().await?;
         if server_info.git_hash != *common::util::GIT_HASH {
             warn!(
@@ -635,6 +639,7 @@ impl Client {
             repair_recipe_book,
             description,
             active_plugins: _active_plugins,
+            role,
         } = loop {
             tokio::select! {
                 // Spawn in a blocking thread (leaving the network thread free).  This is mostly
@@ -968,6 +973,7 @@ impl Client {
                 client_timeout,
                 missing_plugins,
                 local_plugins,
+                role,
             ))
         });
 
@@ -986,6 +992,7 @@ impl Client {
             client_timeout,
             missing_plugins,
             local_plugins,
+            role,
         ) = loop {
             tokio::select! {
                 res = &mut task => break res.expect("Client thread should not panic")?,
@@ -1001,6 +1008,7 @@ impl Client {
         debug!("Initial sync done");
 
         Ok(Self {
+            client_type,
             registered: true,
             presence: None,
             runtime,
@@ -1038,6 +1046,7 @@ impl Client {
 
             force_update_counter: 0,
 
+            role,
             max_group_size,
             invite: None,
             group_leader: None,
@@ -1504,6 +1513,8 @@ impl Client {
     pub fn component_recipe_book(&self) -> &ComponentRecipeBook { &self.component_recipe_book }
 
     pub fn repair_recipe_book(&self) -> &RepairRecipeBook { &self.repair_recipe_book }
+
+    pub fn client_type(&self) -> &ClientType { &self.client_type }
 
     pub fn available_recipes(&self) -> &HashMap<String, Option<SpriteKind>> {
         &self.available_recipes
@@ -2523,23 +2534,17 @@ impl Client {
                     );
                 }
             },
-            ServerGeneral::PlayerListUpdate(PlayerListUpdate::LevelChange(uid, next_level)) => {
+            ServerGeneral::PlayerListUpdate(PlayerListUpdate::ExitCharacter(uid)) => {
                 if let Some(player_info) = self.player_list.get_mut(&uid) {
-                    player_info.character = match &player_info.character {
-                        Some(character) => Some(msg::CharacterInfo {
-                            name: character.name.to_string(),
-                            gender: character.gender,
-                        }),
-                        None => {
-                            warn!(
-                                "Received msg to update character level info to {} for uid {}, \
-                                 but this player's character is None.",
-                                next_level, uid
-                            );
-
-                            None
-                        },
-                    };
+                    if player_info.character.is_none() {
+                        debug!(?player_info.player_alias, ?uid, "Received PlayerListUpdate::ExitCharacter for a player who wasnt ingame");
+                    }
+                    player_info.character = None;
+                } else {
+                    debug!(
+                        ?uid,
+                        "Received PlayerListUpdate::ExitCharacter for a nonexitent player"
+                    );
                 }
             },
             ServerGeneral::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
@@ -2665,6 +2670,10 @@ impl Client {
                 let plugin_len = d.len();
                 tracing::info!(?plugin_len, "plugin data");
                 frontend_events.push(Event::PluginDataReceived(d));
+            },
+            ServerGeneral::SetPlayerRole(role) => {
+                debug!(?role, "Updating client role");
+                self.role = role;
             },
             _ => unreachable!("Not a general msg"),
         }
@@ -3132,16 +3141,9 @@ impl Client {
     }
 
     /// Return true if this client is a moderator on the server
-    pub fn is_moderator(&self) -> bool {
-        let client_uid = self
-            .state
-            .read_component_copied::<Uid>(self.entity())
-            .expect("Client doesn't have a Uid!!!");
+    pub fn is_moderator(&self) -> bool { self.role.is_some() }
 
-        self.player_list
-            .get(&client_uid)
-            .map_or(false, |info| info.is_moderator)
-    }
+    pub fn role(&self) -> &Option<AdminRole> { &self.role }
 
     /// Clean client ECS state
     fn clean_state(&mut self) {
@@ -3405,6 +3407,7 @@ mod tests {
             &|_| {},
             |_| {},
             PathBuf::default(),
+            ClientType::ChatOnly,
         ));
         let localisation = LocalizationHandle::load_expect("en");
 
